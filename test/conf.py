@@ -21,7 +21,7 @@ user_agents = [
 ]
 
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36',
-           'Authorization': 'token c61a0f4b5fa0596b7d448ff69de9d1de6d6dd80e',
+           'Authorization': 'token 9d051ef2ac8f96cde73922f637747bc881243b7c',
            'Content-Type': 'application/json',
            'Accept': 'application/json'
            }
