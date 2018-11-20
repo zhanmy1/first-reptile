@@ -48,14 +48,32 @@ def append(resource_file_path,data,encode='utf-8'):
     f.closed
 
 def get_file_rows(file_name):
-    count = 0  #记录文件行数
+    count = 0
+    flag = False
+
     if file_name.endswith('.java'):
         thefile = open(data_root_path+file_name, 'rb')
         while True:
-            buffer = thefile.read(1024*8192)   #每次读取一片字节
+            buffer = thefile.read(1024*8192)
             if not buffer:
                 break
-            count += buffer.decode().count('\n')  #将字节转换成字符串
+            buffer = buffer.decode()  #将字节转换成字符串
+            lines = buffer.split('\n')
+            for index,value in enumerate(lines):
+                if index == len(lines)-1 and not buffer.endswith('\n'):
+                    continue
+                value = value.strip()  #除去注释的空格
+                if not value=='' and not value.startswith('//'):    #匹配空行
+                    if value.startswith('/*') and not value.endswith('*/'):
+                        flag = True
+                    elif value.startswith('/*') and value.endswith('*/'):
+                        pass
+                    elif flag == True:
+                        if value.endswith('*/'):
+                            flag = False
+                    else:
+                        print(value)
+                        count += 1
         thefile.close()
     return count
 
