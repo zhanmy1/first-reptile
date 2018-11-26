@@ -2,8 +2,6 @@
 
 import conf
 import xlwt
-import linecache
-import chardet
 
 config = conf
 
@@ -37,7 +35,11 @@ style_content.borders = borders
 #加载数据
 def read(resoures_file_path,encode='utf-8'):
     file_path = data_root_path+resoures_file_path
-    return ''.join([line for line in open(file_path,encoding=encode)])
+    content = ''.join([line for line in open(file_path, encoding=encode)]).split('\n')
+    for i,line in enumerate(content):
+        if line.startswith('commit'):
+            content[i] = 'truecommit'
+    return '\n'.join(content)
 
 #写入数据
 def append(resource_file_path,data,encode='utf-8'):
@@ -50,15 +52,14 @@ def append(resource_file_path,data,encode='utf-8'):
 def get_file_rows(file_name):
     count = 0
     flag = False
-
     if file_name.endswith('.java'):
         thefile = open(data_root_path+file_name, 'rb')
         while True:
             buffer = thefile.read(1024*8192)
             if not buffer:
                 break
-            buffer = buffer.decode()  #将字节转换成字符串
-            lines = buffer.split('\n')
+            buffer = buffer.decode()
+            lines = buffer.splitlines()
             for index,value in enumerate(lines):
                 if index == len(lines)-1 and not buffer.endswith('\n'):
                     continue
@@ -72,7 +73,6 @@ def get_file_rows(file_name):
                         if value.endswith('*/'):
                             flag = False
                     else:
-                        print(value)
                         count += 1
         thefile.close()
     return count
@@ -172,6 +172,8 @@ def import_local_rows_excel(fields,data):
     sheet.col(1).width = (30 * 267)
     sheet.col(2).width = (30 * 267)
     sheet.col(3).width = (30 * 267)
+    sheet.col(4).width = (30 * 267)
+    sheet.col(5).width = (30 * 267)
 
     # 生成表头
     for index,value in enumerate(fields):
@@ -184,11 +186,14 @@ def import_local_rows_excel(fields,data):
         additions = item[1][1]
         deletions = item[1][2]
         changes = item[1][3]
+
         sheet.write(i, 0, filename, style_content)
         sheet.write(i, 1, additions, style_content)
         sheet.write(i, 2, deletions, style_content)
         sheet.write(i, 3, changes, style_content)
+        sheet.write(i, 4, item[1][4], style_content)
+        sheet.write(i, 5, item[1][5], style_content)
         i += 1
 
     # 将缓存中的虚拟表格生成为实际的表格
-    exfile.save(data_root_path+'data2.xls')
+    exfile.save(data_root_path+'data3.xls')

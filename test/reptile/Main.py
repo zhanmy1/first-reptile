@@ -28,7 +28,7 @@ def do():
     # FileUtil.import_rows_excel(fileds, api_modify_rows.getResult())
 
     # 生成文件修改行数记录表-----Local
-    fileds = ['文件路径','总增加行数','总删除行数','总修改行数']
+    fileds = ['文件路径','总增加行数','总删除行数','总修改行数','文件修改次数','代码总行数']
     FileUtil.import_local_rows_excel(fileds, local_modify_rows.getResult())
 
     # 生成文件修改次数记录表-----Local
