@@ -2,6 +2,9 @@
 
 import conf
 import xlwt
+import os
+import sys
+import xml.etree.ElementTree as ET
 
 config = conf
 
@@ -32,14 +35,61 @@ style_head.alignment = alignment
 style_content = xlwt.XFStyle()
 style_content.borders = borders
 
-#加载数据
-def read(resoures_file_path,encode='utf-8'):
+#获取提交数据
+def get_commit_data(resoures_file_path,encode='utf-8'):
+    #保存提交数据的文件路径
     file_path = data_root_path+resoures_file_path
+    #将获取的内容分行间隔然后用一个列表储存
+    """
+        [line for line in open(file_path, encoding=encode)]是一个列表推导式，open方法是将文件打开，然后用for遍历获取其中的
+    每一行内容line，然后将获取的内容line存到列表中，因为最外面用【】扩起来了
+        然后"".join()是将列表中的数据已""（空字符串）进行拼接，组合成一个新的字符串，最后通过\n进行分隔
+        
+        问题：为什么这里要读取行，拼成一个字符串，然后又要分成行呢
+            因为，后面要对每一行进行操作，如果在读取每一行直接进行操作的话，速度会很慢很慢，然后我在尝试的过程中，发现，用列表
+        推导式将文本内容读出来拼接是最快的，并且这样先读出来在进行分隔，可以省去，文件流读取内容的时间，因为这样可以不用每次操
+        作都取读取文件内容了（遍历open方法获取的结果的时候，其实还是一次又一次的去读取文件内容，个人感觉是这样的）
+    """
     content = ''.join([line for line in open(file_path, encoding=encode)]).split('\n')
     for i,line in enumerate(content):
+        #因为文中有很多地方
         if line.startswith('commit'):
             content[i] = 'truecommit'
     return '\n'.join(content)
+
+#获取要读取的xml文件
+def get_xml_files(filepath):
+    file_list = []
+    #遍历filepath下所有文件，包括子目录
+    files = os.listdir(filepath)
+    for fi in files:
+            file_list.append(os.path.join(filepath, fi).replace('\\', '/'))
+    return file_list
+
+def get_xml_keyID(filepath):
+    id_set = set()
+    xmlFilePath = os.path.abspath(filepath)
+    try:
+        tree = ET.parse(xmlFilePath)
+        # 获得根节点
+        root = tree.getroot()
+    except Exception as e:  # 捕获除与程序退出sys.exit()相关之外的所有异常
+        print("parse "+ filepath+" fail!")
+        sys.exit()
+
+    index = 6
+    while (index < len(root[0])):
+        type = root[0][index][7].text
+        if "Bug" == type:
+            id_set.add(root[0][index][5].text)
+        index += 1
+    # print(len(id_set))
+    return id_set
+
+#读取文件
+def read(resoures_file_path,encode='utf-8'):
+    file_path = data_root_path+resoures_file_path
+    return "".join([line for line in open(file_path, encoding=encode)])
 
 #写入数据
 def append(resource_file_path,data,encode='utf-8'):
@@ -196,4 +246,5 @@ def import_local_rows_excel(fields,data):
         i += 1
 
     # 将缓存中的虚拟表格生成为实际的表格
-    exfile.save(data_root_path+'data3.xls')
+    # exfile.save(data_root_path+'data2.xls')
+    exfile.save(data_root_path + 'statistical_data/statistical_data.xls')

@@ -87,5 +87,5 @@ def sord_list(li):
     length = len(li)
     for i in reversed(range(length)):#反向遍历序列reversed(range(li))
         for j in reversed(range(i - 1, length)):
-            if li[i][1][2] < li[j][1][2]:
+            if li[i][1][4] < li[j][1][4]:
                 swap(li,i, j)

@@ -10,6 +10,9 @@ def getResult():
     count_dict = {}
     sord_list = []
 
+    #获取bug-fixing-id
+    key_id = FileUtil.read("statistical_data/keyID.txt").split("\n")
+
     results = GetLocalResult.get_all_files()
 
     for result in results:
@@ -31,7 +34,9 @@ def getResult():
                     deletions +=1
         count_dict.setdefault(key_name, [file_name, 0, 0, 0, 0, 0])
         old_value = count_dict.setdefault(file_name, [file_name, 0, 0, 0, 0, 0])
-        if not result[0] == '':
+
+        # if not result[0] == "":
+        if key_id.count(result[0]) > 0:
             old_value[1] += additions
             old_value[2] += deletions
             old_value[3] += additions+deletions
