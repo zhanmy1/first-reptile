@@ -1,22 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6194da93-425e-4418-9954-92a6ae05e34e" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/../.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/test.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/test.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reptile/FileUtil.py" beforeDir="false" afterPath="$PROJECT_DIR$/reptile/FileUtil.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reptile/GetAPIResult.py" beforeDir="false" afterPath="$PROJECT_DIR$/reptile/GetAPIResult.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reptile/Main.py" beforeDir="false" afterPath="$PROJECT_DIR$/reptile/Main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reptile/api_modify_count.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/reptile/api_modify_rows.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/reptile/conf.py" beforeDir="false" afterPath="$PROJECT_DIR$/reptile/conf.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reptile/local_modify_count.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/reptile/local_modify_rows.py" beforeDir="false" afterPath="$PROJECT_DIR$/reptile/local_modify_rows.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reptile/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/reptile/test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/venv/pip-selfcheck.json" beforeDir="false" afterPath="$PROJECT_DIR$/venv/pip-selfcheck.json" afterDir="false" />
-    </list>
+    <list default="true" id="6194da93-425e-4418-9954-92a6ae05e34e" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -313,7 +298,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="-7" width="1295" height="695" extended-state="6" />
+    <frame x="-7" y="-7" width="1295" height="695" extended-state="7" />
     <layout>
       <window_info id="Favorites" side_tool="true" />
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.12045271" />
