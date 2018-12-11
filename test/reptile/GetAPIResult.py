@@ -1,80 +1,39 @@
 # -*- coding: UTF-8 -*-
+#处理爬虫请求与排序的模块
 
 from urllib.request import Request
 from urllib.request import urlopen
 from urllib.request import ProxyHandler
 from urllib.request import build_opener
 from urllib.request import install_opener
-import json
-import conf
+import requests
 
 proxy_info = {'host': 'web-proxy.oa.com', 'port': 8080}
 proxy_support = ProxyHandler({"http": "http://%(host)s:%(port)d" % proxy_info})
 opener = build_opener(proxy_support)
 install_opener(opener)
 
-
-#获取一页的提交记录
-def get_page_commits(headers,page,per_page):
-    url = 'https://api.github.com/repos/{rep}/commits?page={page}&per_page={per_page}'.format(rep=conf.rep,page=page,per_page=per_page)
-
-    req = Request(url, headers=headers)
-    response = urlopen(req).read()
-    result = json.loads(response.decode())
-
-    print(page)
-
-    return result
-
-#获取所有的提交记录，page为记录的开始页数，per_page是一页记录数，一页的记录数越少请求的频率越高
-def get_all_commits(page,per_page):
-    commits = []
-
-    while True:
-        #调用获取一页记录数的函数
-        results = get_page_commits(conf.headers,page,per_page)
-        #将获取的记录数储存起来
-        """" 因为到最后一页的时候，记录数会小于一页数所有对
-        查询出的记录数进行判断可以判断是否查询到最后一页 """
-        if len(results)==per_page:
-            page += 1
-
-            for item in results:
-                commits.append(item)
-        else:
-            for item in results:
-                commits.append(item)
-            break
-
-    return commits
-
-"""
-    由于查询出的commit的数据中没有具体的提交文件的信息，但是我对某一次提交进行查询的
-时候发现返回的数据中有files的信息，所有用下面这个方法查询某一具体的提交记录
-"""
-#查询某一具体提交记录
-def get_commits_files(headers,sha):
-    url = 'https://api.github.com/repos/{rep}/commits/{sha}'.format(rep=conf.rep,sha=sha)
-
+#用爬虫获取bug管理系统中一个月的任务提交数据
+#headers为请求头，start_m为开始的月份，end_m为结束的月份
+def get_month_data(headers,start_m,end_m):
+    #请求的地址
+    url = 'https://issues.apache.org/jira/sr/jira.issueviews:searchrequest-xml/temp/SearchRequest.xml?' \
+          'jqlQuery=project+%3D+AVRO+AND+issuetype+%3D+Bug+AND+created+%3E' \
+          '%3D+{start_m}+AND+created+%3C%3D+{end_m}+' \
+          'ORDER+BY+priority+DESC%2C+updated+DESC&tempMax=1000'.format(start_m=start_m, end_m=end_m)
+    #打印地址便于差错
     print(url)
-
-    req = Request(url, headers=headers)
-    response = urlopen(req).read()
-    result = json.loads(response.decode())
-    return result
-
-#将元组转换为固定格式的字符串
-def change_cont_tuple(tuple):
-    return str(tuple[0])+'-------------------------->'+str(tuple[1])
-
-#将元组转换为固定格式的字符串
-def change_rows_tuple(tuple):
-    filename = str(tuple[0])
-    additions = str(tuple[1][0])
-    deletions = str(tuple[1][1])
-    changes = str(tuple[1][2])
-
-    return filename+'\n'+'总增加行数：'+additions+'\t'+'总删除行数：'+deletions+'\t'+'总共修改行数：'+changes
+    #爬虫向目标地址发出请求
+    # req = Request(url, headers=headers)
+    # #获取目标地址的回复内容
+    # response = urlopen(req).read()
+    # #response为字节码(01000010001这种)，通过decode()方法可将字节码转换为字符串
+    #
+    # result = response.decode()
+    # #返回地址回复的内容
+    session = requests.Session()
+    req = session.get(url, headers=headers, proxies=proxy_info)
+    return req.text
 
 #交换序列中两个元素的位置
 def swap(li,i, j):
@@ -85,7 +44,11 @@ def swap(li,i, j):
 #冒泡排序
 def sord_list(li):
     length = len(li)
-    for i in reversed(range(length)):#反向遍历序列reversed(range(li))
+    """
+        反向遍历序列li，reversed(range(li))的意思要分开看，range(length)是遍历从0顺序递增到length的所有值，即遍历序列
+    [0,1,2,3,4,5......,length]，reversed()是反向遍历序列，所有结果就是遍历序列[length,length-1,.......,2,1,0]
+    """
+    for i in reversed(range(length)):
         for j in reversed(range(i - 1, length)):
             if li[i][1][4] < li[j][1][4]:
                 swap(li,i, j)

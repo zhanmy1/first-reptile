@@ -6,20 +6,20 @@ data_root_path = 'D:/sublime/avro/'
 
 rep = 'apache/avro'
 
-tokens = [
-    "token a70854771f861dc5d7f9ebe817b33f75637b901d",
-    "token 24ce6aec37b0ceb39424fdb24dc77f840582a93d",
-    "token fa3b7cb248d9f94fbf9561175945ecb31f62a37f",
-    "token d8ced087bcd5a39d97c833a802e2d28a0212c03b",
-    "token f67e79c8fcd20aaa0898ea53c02ade3100b890b2",
-    "token 310ff8f54b153954b2136a288229b9ddf0d6b91b",
-    "token 925ed31b7e3998def743eb60184e0e040c296240",
-    "token 5c173f6502708e2754970036f516cc18a7894f31",
-    "token 9d051ef2ac8f96cde73922f637747bc881243b7c",
-]
+user_agent_list = ["Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36",
+                    "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36",
+                    "Mozilla/5.0 (Windows NT 10.0; …) Gecko/20100101 Firefox/61.0",
+                    "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36",
+                    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.62 Safari/537.36",
+                    "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36",
+                    "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)",
+                    "Mozilla/5.0 (Macintosh; U; PPC Mac OS X 10.5; en-US; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15",
+                    ]
 
-headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36',
-           'Authorization': random.choice(tokens),
+headers = {'User-Agent': random.choice(user_agent_list),
            'Content-Type': 'application/json',
-           'Accept': 'application/json'
+           'Accept': 'application/json',
+            'Accept-Encoding': 'gzip, deflate, sdch',
+            'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
            }
+
