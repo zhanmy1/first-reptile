@@ -62,6 +62,7 @@ def getResult():
             old_value[2] += deletions
             old_value[3] += additions+deletions
             old_value[4] += 1
+            count_dict[file_name] = old_value
 
         """
             记录文件名的修改，这里没有放到筛选里面是因为，如果文件名的修改被筛选掉了，我们就不能把一个文件的文件名历史完整的
@@ -77,7 +78,7 @@ def getResult():
             try:
                 item[1][5] = FileUtil.get_file_rows(item[1][0])
             except FileNotFoundError as e:
-                item[1][2] = 0
+                item[1][5] = 0
             sord_list.append(item)
     # 排序
     # sord_list的结构：

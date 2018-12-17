@@ -7,31 +7,43 @@ from urllib.request import ProxyHandler
 from urllib.request import build_opener
 from urllib.request import install_opener
 import requests
+import conf
 
 proxy_info = {'host': 'web-proxy.oa.com', 'port': 8080}
 proxy_support = ProxyHandler({"http": "http://%(host)s:%(port)d" % proxy_info})
 opener = build_opener(proxy_support)
 install_opener(opener)
 
-#用爬虫获取bug管理系统中一个月的任务提交数据
+#用爬虫获取bug管理系统中一个月的任务report数据
 #headers为请求头，start_m为开始的月份，end_m为结束的月份
 def get_month_data(headers,start_m,end_m):
+    session = requests.Session()
     #请求的地址
     url = 'https://issues.apache.org/jira/sr/jira.issueviews:searchrequest-xml/temp/SearchRequest.xml?' \
-          'jqlQuery=project+%3D+AVRO+AND+issuetype+%3D+Bug+AND+created+%3E' \
-          '%3D+{start_m}+AND+created+%3C%3D+{end_m}+' \
-          'ORDER+BY+priority+DESC%2C+updated+DESC&tempMax=1000'.format(start_m=start_m, end_m=end_m)
-    #打印地址便于差错
+      'jqlQuery=project+%3D+{project}+AND+issuetype+%3D+Bug+AND+created+%3E' \
+      '%3D+{start_m}+AND+created+%3C%3D+{end_m}+' \
+      'ORDER+BY+priority+DESC%2C+updated+DESC&tempMax=1000'.format(project=conf.project,start_m=start_m, end_m=end_m)
+    #打印地址便于查错
     print(url)
-    #爬虫向目标地址发出请求
-    # req = Request(url, headers=headers)
-    # #获取目标地址的回复内容
-    # response = urlopen(req).read()
-    # #response为字节码(01000010001这种)，通过decode()方法可将字节码转换为字符串
-    #
-    # result = response.decode()
-    # #返回地址回复的内容
+    result = ''
+    #利用会话进行请求，一个会话可以进行多次请求
+    try:
+        req = session.get(url,headers=headers,proxies=proxy_info)
+        result = req.text
+    except Exception:
+        result = get_month_data(headers,start_m,end_m)
+    #返回网页内容的字符串
+    return result
+
+#用爬虫查询所有的report数据，不需要具体数据，只需要总数量即可，所以在url中将tempMax设置为0
+def get_all_data(headers):
     session = requests.Session()
+    # 请求的地址
+    url = 'https://issues.apache.org/jira/sr/jira.issueviews:searchrequest-xml/temp/SearchRequest.xml?' \
+          'jqlQuery=project+%3D+{project}+AND+issuetype+%3D+Bug+' \
+          '&tempMax=0'.format(project=conf.project)
+    # 打印地址便于查错
+    print(url)
     req = session.get(url, headers=headers, proxies=proxy_info)
     return req.text
 

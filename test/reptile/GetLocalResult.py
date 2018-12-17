@@ -2,6 +2,7 @@
 
 import FileUtil
 import re
+import conf
 
 def get_all_files():
     #获取用diff -分隔出来的所有提交文件
@@ -10,7 +11,7 @@ def get_all_files():
     # data = FileUtil.get_commit_data('data.txt')
     # commits = data.split('truecommit')
     #用\ncommit进行分隔，因为真正的提交标识都是从一行的最开始出现的
-    commits = FileUtil.read('data.txt').split('\ncommit')
+    commits = FileUtil.read_data('data.txt').split('\ncommit')
     for i,commit in enumerate(commits):
         files = commit.split('diff -')
         heads = files[0].splitlines()
@@ -22,7 +23,7 @@ def get_all_files():
         （例子：<re.Match object; span=(0, 6), match='AVRO-9'>），span是匹配字符串的下标，可以用span()方法获取，
         match是匹配的内容，可以用group()方法获取，如果没有匹配则返回none(none在if后面表示false,个人感觉)
         """
-        suited = re.match('[Aa][Vv][Rr][Oo][-_]\d*',head)
+        suited = re.match(conf.match,head)
         if suited:
             no = suited.group(0)
         change_files(files,no)

@@ -64,14 +64,22 @@ def get_xml_keyID(filepath):
     # print(len(id_set))
     return id_set
 
-#读取文件
-def read(resoures_file_path,encode='utf-8'):
+#读取data
+def read_data(resoures_file_path,encode='utf-8'):
     file_path = data_root_path+resoures_file_path
     return "".join([line for line in open(file_path, encoding=encode)])
 
+#读取文件
+def read(resoures_file_path,encode='utf-8'):
+    file_path = conf.public_path+resoures_file_path
+    return "".join([line for line in open(file_path, encoding=encode)])
+
 #写入数据
-def append(resource_file_path,data,encode='utf-8'):
-    file_path = data_root_path+resource_file_path
+def append(prefix,resource_file_path,data,encode='utf-8'):
+    file_dir = conf.public_path+prefix
+    file_path = conf.public_path+prefix+resource_file_path
+    if not os.path.exists(file_dir):
+        os.makedirs(file_dir)
     f = open(file_path,'w+',encoding=encode)
     f.truncate()
     f.write(data)
@@ -139,4 +147,6 @@ def import_local_rows_excel(fields,data):
 
     # 将缓存中的虚拟表格生成为实际的表格
     # exfile.save(data_root_path+'data2.xls')
+    if not os.path.exists(data_root_path + 'statistical_data/'):
+        os.makedirs(data_root_path + 'statistical_data/')
     exfile.save(data_root_path + 'statistical_data/statistical_data.xls')

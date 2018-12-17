@@ -4,26 +4,10 @@ import FileUtil
 import conf
 import GetAPIResult
 import arrow
-import xml.sax
-import xml.sax.handler
-
-#不是很懂，只能懂大概。。。应该是重写了ContentHandler里的几个方法，parseString会调用这几个方法
-class XMLHandler(xml.sax.handler.ContentHandler):
-    def __init__(self):
-        self.buffer = ""
-        self.mapping = {}
-
-    def startElement(self, name, attributes):
-        self.buffer = ""
-
-    def characters(self, data):
-        self.buffer += data
-
-    def endElement(self, name):
-        self.mapping[name] = self.buffer
-
-    def getDict(self):
-        return self.mapping
+try:
+    import xml.etree.cElementTree as ET
+except ImportError:
+    import xml.etree.cElementTree as ET
 
 def get_data(interval):
     #获取月份区间
@@ -35,13 +19,33 @@ def get_data(interval):
     end_m = arrow.now().shift(months=-interval+1).format("YYYY-MM-1")#参数加1即时间往现在推一个月，时间间隔则为一个月
     result = GetAPIResult.get_month_data(conf.headers,start_m,end_m)
     #处理获取到的数据的xml数据字符串
-    xh = XMLHandler()
-    xml.sax.parseString(result, xh)
-    ret = xh.getDict()
-    #通过测试知道，当没有提交数据的时候，返回的ret的长度为11，所有通过递归，一直查询到ret的长度为11即可
-    if(len(ret)>11):
-        FileUtil.append("/avro-jira-bugs/AVRO_"+start_m+"-"+end_m+".xml",result)
-        get_data(interval+1)
+    root = ET.fromstring(result)
+    #total为本次查询结果的report数量
+    total = int(root[0][4].attrib['total'])
+    #当有report数据的时候才生成xml文件
+    if(total>0):
+        FileUtil.append("/avro-jira-bugs/",conf.project.upper()+start_m+"-"+end_m+".xml",result)
+    #返回这一次获取的report数量，用来统计以查询出的report数量
+    return total
 
 if __name__ == '__main__':
-    get_data(0)
+    #获取所有report的总数
+    all_data = GetAPIResult.get_all_data(conf.headers)
+    #ET.formstring可以像处理xml文件一样处理xml格式的字符串，返回一个树结构
+    all_root = ET.fromstring(all_data)
+    #观察返回的树结构，我可以知道，total的值在all_root[0][4].attrib['total']的位置
+    all_total = int(all_root[0][4].attrib['total'])
+    print(all_total)
+    #统计已经查询出的report数量
+    now_total = 0
+    #调整查询的月份
+    interval = 0
+    while True:
+        #输出已查询出的reprot数量
+        print(now_total)
+        #统计
+        now_total += int(get_data(interval))
+        #当已查询出的reprot数量等于总数量时退出查询
+        if now_total >= all_total:
+            break
+        interval += 1
