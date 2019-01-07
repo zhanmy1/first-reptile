@@ -1,9 +1,6 @@
 # -*- coding: UTF-8 -*-
-#
 
 import GetLocalResult
-import GetAPIResult
-import Main
 import datetime
 import FileUtil
 import conf
@@ -13,14 +10,15 @@ def getResult(project,type):
     sord_list = []
 
     #获取bug-fixing-id，用\n分隔内容，取得所有任务编号的列表
-    print('当前读取' + project + '的' + type + '的keyID数据')
     key_id = FileUtil.read("statistical_data/keyID/"+project+"-"+type+"-keyID.txt").split("\n")
-    print(len(key_id))
+    #生成0.5到0.14.0版本间被删除的文件的在这两版本间的修改记录
+    comper_file = FileUtil.read("statistical_data/comper_file.txt").split("\n")
+    print(len(comper_file))
+
     #获取所有文件的提交记录内容格式为：[['编号'，'diff....修改修改']，['编号'，'diff....修改修改]',...]
     results = GetLocalResult.get_all_files(project)
     #遍历获取到的所有文件提交内容
     cont = 0
-    #reversed是反向遍历序列，这样可以从最开始的提交进行统计
     for result in reversed(results):
         #reslut[1]为记录结果中的'diff....修改修改'
         content = result[1].splitlines()
@@ -42,14 +40,17 @@ def getResult(project,type):
         #设置结果字典中key_name的默认值，setdefault()方法是如果字典中没有key的值，则在字典中插入key，值为后面的参数，如果有
         #就返回已有的值
         """
-            设置old_name的默认值
+            设置file_name的默认值，如果没有则返回file_name的值，这个值是从现在到当前节点获取到的所有提交数据,如果文件名发生了
+        变化，需要将这个值赋予给新的key_name对应的值，以达到合并的目的
         """
-        old_value = count_dict.setdefault(old_name, [ 0, 0, 0, 0, 0])
+        old_value = count_dict.setdefault(old_name, [ '', 0, 0, 0, 0, 0])
+
+        if comper_file.count(old_name)>0:
+            old_value[0] = old_name
 
         #用获取到的key_id进行筛选
-        #if key_id.count(result[0]) > 0:
-        #遍历文件提交内容，统计其中的+++和---的数量以统计修改行数
-        if result[0] != '' and key_id.count(result[0]):
+        if key_id.count(result[0]) > 0:
+            #遍历文件提交内容，统计其中的+++和---的数量以统计修改行数
             additions = 0
             deletions = 0
             for j,line in enumerate(content):
@@ -58,54 +59,59 @@ def getResult(project,type):
                         additions +=1
                     if line.startswith('-') and not line.startswith('---'):
                         deletions +=1
-            old_value[0] += additions           #增加行数
-            old_value[1] += deletions           #删除行数
-            old_value[2] += additions+deletions #修改行数
-            old_value[3] += 1                   #修改次数
-
-            if content[1].startswith('new file'):
-                old_value[6] += 1
-            elif content[1].startswith('deleted file'):
-                old_value[7] += 1
-            else:
-                old_value[5] += 1
+            old_value[1] += additions
+            old_value[2] += deletions
+            old_value[3] += additions+deletions
+            old_value[4] += 1
 
         """
             记录文件名的修改，这里没有放到筛选里面是因为，如果文件名的修改被筛选掉了，我们就不能把一个文件的文件名历史完整的
         连起来，这样会导致一个文件的修改记录被断开
         """
+
         if not old_name == new_name:
             count_dict[new_name] = old_value
             del count_dict[old_name]
 
-    #筛选java文件，并记录java文件的行数（忽略注释行数）
+    #生成需要的数据
     for item in count_dict.items():
-        """
-            这里是过滤是否显示的地方，现在是显示所有的java文件记录，你看看结果会发现有很多记录是全是0的，是因为它们所有的提交
-            记录全被keyID过滤了，只剩下文件名显示出来了，所以你可以看情况把这些都删掉，就是在这个判断条件后面加上一个
-             and item[0][3] != 0
-        """
-        if (item[0].endswith(".java") or item[0].endswith(".java.t")):
+        if item[1][0] != '':
             try:
-                item[1][4] = FileUtil.get_file_rows(project,item[0])
+                item[1][5] = FileUtil.get_file_rows(project,item[0])
             except FileNotFoundError as e:
-                """
-                    这里是异常处理，如果文件被删了，就不对文件行数处理，就为默认值0，如果你想把这些被删除的文件也处理掉，就
-                    把pass改成continue
-                """
-                pass
-            sord_list.append(item)
+                sord_list.append(item)
+
     # 排序
     # sord_list的结构：
     # [('文件名'，['文件名','增加','删除','修改'，'修改次数'，'文件行数'])，('文件名'，
     # ['文件名','增加','删除','修改'，'修改次数'，'文件行数'])，('文件名'，['文件名','增加','删除','修改'，'修改次数'，'文件行数'])]
-    GetAPIResult.sord_list(sord_list)
+    sord_compare_list(sord_list)
     return sord_list
+
+#交换序列中两个元素的位置
+def swap(li,i, j):
+    temp = li[i]
+    li[i] = li[j]
+    li[j] = temp
+
+#冒泡排序
+def sord_compare_list(li):
+    length = len(li)
+    """
+        反向遍历序列li，reversed(range(li))的意思要分开看，range(length)是遍历从0顺序递增到length的所有值，即遍历序列
+    [0,1,2,3,4,5......,length]，reversed()是反向遍历序列，所有结果就是遍历序列[length,length-1,.......,2,1,0]
+    """
+    for i in reversed(range(length)):
+        for j in reversed(range(i - 1, length)):
+            if li[i][1][4] < li[j][1][4]:
+                swap(li,i, j)
 
 if __name__ == '__main__':
     startime = str(datetime.datetime.now())
 
-    Main.do()
+    fileds = ['文件路径', '总增加行数', '总删除行数', '总修改行数', '修改次数', '总行数']
+    data = getResult(conf.now_project, 'New Feature')
+    FileUtil.import_compare_excel(fileds, data, conf.now_project, 'New Feature')
 
     endtime = str(datetime.datetime.now())
 

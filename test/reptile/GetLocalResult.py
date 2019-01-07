@@ -4,18 +4,19 @@ import FileUtil
 import re
 import conf
 
-def get_all_files():
+def get_all_files(project):
     #获取用diff -分隔出来的所有提交文件
     all_files = []
 
     # data = FileUtil.get_commit_data('data.txt')
     # commits = data.split('truecommit')
     #用\ncommit进行分隔，因为真正的提交标识都是从一行的最开始出现的
-    commits = FileUtil.read_data('data.txt').split('\ncommit')
-    for i,commit in enumerate(commits):
-        files = commit.split('diff -')
+    commits = FileUtil.read_data('DATAS'+'/DATA-'+project+'.txt').split('\ncommit')
+
+    for commit in commits:
+        files = commit.split('\ndiff -')
         heads = files[0].splitlines()
-        head = heads[4].lstrip()
+
         no = ''
         #使用正则表达式进行匹配
         """
@@ -23,11 +24,14 @@ def get_all_files():
         （例子：<re.Match object; span=(0, 6), match='AVRO-9'>），span是匹配字符串的下标，可以用span()方法获取，
         match是匹配的内容，可以用group()方法获取，如果没有匹配则返回none(none在if后面表示false,个人感觉)
         """
-        suited = re.match(conf.match,head)
-        if suited:
-            no = suited.group(0)
+        for head in heads:
+            suited = re.search(conf.match[project], head)
+            if suited:
+                no = suited.group(0)
+                break
         change_files(files,no)
         all_files.extend(files)
+
     return all_files
 
 def change_files(files,no):

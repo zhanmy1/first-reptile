@@ -16,32 +16,41 @@ install_opener(opener)
 
 #用爬虫获取bug管理系统中一个月的任务report数据
 #headers为请求头，start_m为开始的月份，end_m为结束的月份
-def get_month_data(headers,start_m,end_m):
+def get_month_data(headers,start_m,end_m,project,type):
+    if type.find(' ') > 0:
+        type = type.replace(' ', '+')
+        type = "\"" + type + "\""
     session = requests.Session()
     #请求的地址
     url = 'https://issues.apache.org/jira/sr/jira.issueviews:searchrequest-xml/temp/SearchRequest.xml?' \
-      'jqlQuery=project+%3D+{project}+AND+issuetype+%3D+Bug+AND+created+%3E' \
+      'jqlQuery=project+%3D+{project}+AND+issuetype+%3D+{type}+AND+created+%3E' \
       '%3D+{start_m}+AND+created+%3C%3D+{end_m}+' \
-      'ORDER+BY+priority+DESC%2C+updated+DESC&tempMax=1000'.format(project=conf.project,start_m=start_m, end_m=end_m)
+      'ORDER+BY+priority+DESC%2C+updated+DESC&tempMax=1000'.format(project=project,type=type,start_m=start_m, end_m=end_m)
     #打印地址便于查错
-    print(url)
+    print(str(url))
     result = ''
     #利用会话进行请求，一个会话可以进行多次请求
     try:
-        req = session.get(url,headers=headers,proxies=proxy_info)
+        req = session.get(url,headers=headers,proxies=proxy_info,timeout=10)
         result = req.text
+    except requests.exceptions.Timeout:
+        print('请求超时，重试请求')
+        result = get_month_data(headers, start_m, end_m,project,type)
     except Exception:
-        result = get_month_data(headers,start_m,end_m)
+        result = get_month_data(headers,start_m,end_m,project,type)
     #返回网页内容的字符串
     return result
 
 #用爬虫查询所有的report数据，不需要具体数据，只需要总数量即可，所以在url中将tempMax设置为0
-def get_all_data(headers):
+def get_all_data(headers,project,type):
+    if type.find(' ') > 0:
+        type = type.replace(' ', '+')
+        type = "\"" + type + "\""
     session = requests.Session()
     # 请求的地址
     url = 'https://issues.apache.org/jira/sr/jira.issueviews:searchrequest-xml/temp/SearchRequest.xml?' \
-          'jqlQuery=project+%3D+{project}+AND+issuetype+%3D+Bug+' \
-          '&tempMax=0'.format(project=conf.project)
+          'jqlQuery=project+%3D+{project}+AND+issuetype+%3D+{type}+' \
+          '&tempMax=0'.format(project=project,type=type)
     # 打印地址便于查错
     print(url)
     req = session.get(url, headers=headers, proxies=proxy_info)
@@ -62,5 +71,5 @@ def sord_list(li):
     """
     for i in reversed(range(length)):
         for j in reversed(range(i - 1, length)):
-            if li[i][1][4] < li[j][1][4]:
+            if li[i][1][3] < li[j][1][3]:
                 swap(li,i, j)

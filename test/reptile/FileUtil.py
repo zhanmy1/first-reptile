@@ -9,6 +9,7 @@ import xml.etree.ElementTree as ET
 config = conf
 
 data_root_path = config.data_root_path
+public_path = conf.public_path
 
 #以下是表格的一些样式
 #字体
@@ -57,9 +58,7 @@ def get_xml_keyID(filepath):
 
     index = 6
     while (index < len(root[0])):
-        type = root[0][index][7].text
-        if "Bug" == type:
-            id_set.add(root[0][index][5].text)
+        id_set.add(root[0][index][5].text)
         index += 1
     # print(len(id_set))
     return id_set
@@ -71,13 +70,16 @@ def read_data(resoures_file_path,encode='utf-8'):
 
 #读取文件
 def read(resoures_file_path,encode='utf-8'):
-    file_path = conf.public_path+resoures_file_path
+    file_path = public_path+resoures_file_path
+    file_path = file_path.replace(' ', '')
     return "".join([line for line in open(file_path, encoding=encode)])
 
 #写入数据
 def append(prefix,resource_file_path,data,encode='utf-8'):
-    file_dir = conf.public_path+prefix
-    file_path = conf.public_path+prefix+resource_file_path
+    file_dir = public_path+prefix
+    file_dir = file_dir.replace(' ', '')
+    file_path = public_path+prefix+resource_file_path
+    file_path = file_path.replace(' ', '')
     if not os.path.exists(file_dir):
         os.makedirs(file_dir)
     f = open(file_path,'w+',encoding=encode)
@@ -85,19 +87,23 @@ def append(prefix,resource_file_path,data,encode='utf-8'):
     f.write(data)
     f.closed
 
-def get_file_rows(file_name):
+def get_file_rows(project,file_name):
     count = 0
     flag = False
-    thefile = open(data_root_path+file_name, 'rb')
+    isFinish = True
+    thefile = open(data_root_path+project+file_name, 'rb')
+    temp = ''
     while True:
         buffer = thefile.read(1024*8192)
         if not buffer:
             break
+        if not isFinish:
+            count -= 1
         buffer = buffer.decode()
-        lines = buffer.splitlines()
+        lines = str(temp+buffer).splitlines()
+        if not buffer.endswith('\n'):
+            isFinish = False
         for index,value in enumerate(lines):
-            if index == len(lines)-1 and not buffer.endswith('\n'):
-                continue
             value = value.strip()  #除去注释的空格
             if not value=='' and not value.startswith('//'):    #匹配空行
                 if value.startswith('/*') and not value.endswith('*/'):
@@ -112,7 +118,49 @@ def get_file_rows(file_name):
     thefile.close()
     return count
 
-def import_local_rows_excel(fields,data):
+def import_local_rows_excel(fields,data,project,type):
+    # 打开一个工作区，可以说就是一个excel文件，不过这个文件在缓存中，没有具体的文件
+    exfile = xlwt.Workbook(encoding='utf-8')
+    # 在这个序列的excel文件中创建一个sheet（页签）
+    sheet = exfile.add_sheet('sheet1',cell_overwrite_ok=True)
+    # 设置表格中一列的宽度
+    sheet.col(0).width = (30 * 567)
+    sheet.col(1).width = (30 * 267)
+    sheet.col(2).width = (30 * 267)
+    sheet.col(3).width = (30 * 267)
+    sheet.col(4).width = (30 * 267)
+    sheet.col(5).width = (30 * 267)
+
+    # 生成表头
+    for index,value in enumerate(fields):
+        sheet.write(0,index,value,style_head)
+
+    # 将值写入单元格
+    i = 1
+    for index,item in enumerate(data):
+        filename = item[0]
+        additions = item[1][0]
+        deletions = item[1][1]
+        changes = item[1][2]
+
+        sheet.write(i, 0, filename, style_content)
+        sheet.write(i, 1, additions, style_content)
+        sheet.write(i, 2, deletions, style_content)
+        sheet.write(i, 3, changes, style_content)
+        sheet.write(i, 4, item[1][3], style_content)
+        sheet.write(i, 5, item[1][4], style_content)
+        i += 1
+
+    # 将缓存中的虚拟表格生成为实际的表格
+    # exfile.save(data_root_path+'data2.xls')
+    if not os.path.exists(public_path + 'statistical_data/excel/'+project+'/'):
+        os.makedirs(public_path + 'statistical_data/excel/'+project+'/')
+    if conf.version=='':
+        exfile.save(public_path + 'statistical_data/excel/'+project+'/'+ project + '的修改次数(' + type + ').xls')
+    else:
+        exfile.save(public_path + 'statistical_data/excel/'+project+'/'+project+'-'+conf.version+'的修改次数('+type+').xls')
+
+def import_compare_excel(fields,data,project,type):
     # 打开一个工作区，可以说就是一个excel文件，不过这个文件在缓存中，没有具体的文件
     exfile = xlwt.Workbook(encoding='utf-8')
     # 在这个序列的excel文件中创建一个sheet（页签）
@@ -147,6 +195,6 @@ def import_local_rows_excel(fields,data):
 
     # 将缓存中的虚拟表格生成为实际的表格
     # exfile.save(data_root_path+'data2.xls')
-    if not os.path.exists(data_root_path + 'statistical_data/'):
-        os.makedirs(data_root_path + 'statistical_data/')
-    exfile.save(data_root_path + 'statistical_data/statistical_data.xls')
+    if not os.path.exists(public_path + 'statistical_data/excel/'):
+        os.makedirs(public_path + 'statistical_data/excel/')
+    exfile.save(public_path + 'statistical_data/excel/' + project + '中0.5到0.14.0间的修改记录(' + type + ').xls')
